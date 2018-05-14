@@ -1,0 +1,34 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+  <link rel="stylesheet" href="style/Style.css" id="css">
+  <title>Track Visualiser</title>
+</head>
+<body>   
+  <!-- Import the necessary libs -->
+  <script type="text/javascript" src="js/lib/three.min.js"></script>
+  <script type="text/javascript" src="js/lib/TrackballControls.js"></script>
+  <script type="text/javascript" src="js/lib/stats.min.js"></script>
+
+  <!-- Web APIs <script src="//webapi.amap.com/ui/1.0/main.js"></script> -->
+  <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.4.4&key=af959e10b7a7979881d62d62569ac2b0"></script>
+  
+  <!-- Container for the map -->
+  <div id="mapContainer" class="mapContainer_1"></div>
+  <script type="text/javascript" src="js/Map.js"></script>
+  
+  <!-- Container for the abstarct coordination system -->
+  <div id="coordContainer" class="coordContainer_0"></div>
+  <script type="text/javascript" src="js/CoordSystem.js"></script>
+
+  <!-- Container for the toolbar -->
+  <div id="toolContainer" class="toolContainer_1"></div>
+  <script type="text/javascript" src="js/Toolbar.js"></script>
+
+  <!-- Container for the coordToolbar -->
+  <div id="coordToolContainer" class="coordToolContainer_0"></div>
+  <script type="text/javascript" src="js/CoordToolbar.js"></script>
+</body>
+</html>
