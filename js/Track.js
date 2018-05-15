@@ -1,6 +1,3 @@
-// THree.js buffer
-let MAX_POINTS = 1000;
-
 // Declaration of structures being used to store track datas
 // TODO: 1. Implement Doubly-Linked list methods
 //       2. Implement track node handlers
@@ -59,9 +56,14 @@ class TrackManager {
     this.curEditTrackNo = -1;
     this.curEditNodeNo = -1;
     this.curEditTrackHead = null;
+    this.minTime = Number.MAX_SAFE_INTEGER;
+    this.maxTime = Number.MIN_SAFE_INTEGER;
 
     // Abstract part
     this.drawnSet = new Set();
+
+    // Timeline part
+    this.timeDrawnSet = new Set();
   }
 
   addNewTrack() {
@@ -259,6 +261,44 @@ class TrackManager {
       }
     }
     return timeArray;
+  }
+
+  getMinTimeStamp() {
+    return this.minTime;
+  }
+
+  updateMinTimeStamp() {
+    let head = this.trackMgrHead;
+
+    while(head) {
+      let node = head.dataHead;
+      while(node) {
+        if(node.time < this.minTime) {
+          this.minTime = node.time;
+        }
+        node = node.next;
+      }
+      head = head.next;
+    }
+  }
+
+  getMaxTimeStamp() {
+    return this.maxTime;
+  }
+
+  updateMaxTimeStamp() {
+    let head = this.trackMgrHead;
+
+    while(head) {
+      let node = head.dataHead;
+      while(node) {
+        if(node.time > this.maxTime) {
+          this.maxTime = node.time;
+        }
+        node = node.next;
+      }
+      head = head.next;
+    }
   }
 
   setCurrentEditTrack(no) {
@@ -724,6 +764,90 @@ class TrackManager {
   abstractHideExcept() {
 
   }
+
+  //
+  // Timeline
+  //
+  timelineIsDrawn(trackNo) {
+    for(let item of this.timeDrawnSet.values()) {
+      if(trackNo === item.userData.trackNo) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  timelineDrawTrackNo(trackNo, secHeight) {
+    const speedMin = secHeight * 3;
+    const straightnessMin = speedMin - secHeight;
+    let polyLines = new THREE.Object3D();
+
+    const selectedTrack = this.getTrackAsArray(trackNo);
+    const timeArray = this.getTrackTimeStampArray(trackNo);
+    const trackLen = selectedTrack.length;
+    let mat = new THREE.LineBasicMaterial({color: Math.random()*0xffffff});
+
+    if(!this.timelineIsDrawn(trackNo) && trackNo !== -1)
+    {
+      // ===== Speed =====
+      let points3D = new THREE.Geometry();
+      for(let i = 0; i < trackLen - 1; i++) {
+        let distance = selectedTrack[i].distance(selectedTrack[i+1]); // Unit: m
+        let timeDiff = (timeArray[i+1] - timeArray[i])/1000; // Unit: s
+        let avgSpeed = (distance*3.6/timeDiff); // m/s * 3.6 --> km/h
+        // Normalize first
+        let x = (10000.0*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
+        let y = (secHeight*(avgSpeed/200.0)) + speedMin;
+        // X-axis-->Time Y-axis-->Speed
+        let point = new THREE.Vector3(x, y, 0.0);
+        points3D.vertices.push(point);
+      }
+      let speedPolyLine = new THREE.Line(points3D, mat);
+
+      // ===== Straghtness =====
+      points3D = new THREE.Geometry();
+      for(let i = 1; i < trackLen - 1; i++) {
+        
+      }
+      // ===== Wrapper =====
+      polyLines.add(speedPolyLine);
+
+      polyLines.userData = {
+        trackNo: trackNo,
+        modified: false,
+        material: mat
+      };
+      polyLines.name = "Track" + trackNo;
+      this.timeDrawnSet.add(polyLines);
+      return polyLines;
+    }
+    else {
+      console.log("abstractDrawTrackNo: Already drawn! or No line at all!\n")
+      return null;
+    }
+
+  }
+
+  timelineDrawAll(secHeight) {
+
+  }
+
+  timelineMarkModified() {
+    const modifiedTrackNo = this.getCurrentEditTrackNo();
+
+    for(let item of this.timeDrawnSet.values()) {
+      if(item.userData.trackNo === modifiedTrackNo && !item.userData.modified) {
+        item.userData.modified = true;
+        console.log("Modified\n");
+        break;
+      }
+    }
+  }
+
+  timelineUpdateModified(secHeight) {
+
+  }
+
 } // Class TrackManager
 
 //

@@ -1,11 +1,14 @@
 // Global reference of html elements and attributes
-let timelineContainer, timelineIndicator, width, height;
+let timelineContainer, timelineIndicator, width, height, secHeight;
 
 // Global reference of three.js variables
 let renderer, scene, camera, stats, controls;
 
 // GLobal reference of timeline min and max slider line
 let minLine, maxLine;
+
+// Filtering
+let pointInter, lineParent;
 
 initTimeline();
 animateTimeline();
@@ -39,8 +42,13 @@ function initTimeline() {
   // Div container stats
   stats = new Stats();
   // Dev tool for performance(stats in the left-top corner)
-  //container.appendChild(stats.dom);
+  // container.appendChild(stats.dom);
 
+  // Ortho Trackball controls
+  controls = new OrthographicTrackballControls(camera, renderer.domElement);
+
+  lineParent = new THREE.Object3D();
+  scene.add(lineParent);
   // Listeners
   window.addEventListener('resize', resizeTimeline, false);
 
@@ -58,7 +66,7 @@ function buildAxesTimeline(length) {
   axes.add(buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(length, 0, 0), 0xFF0000, false)); // +X
   axes.add(buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, length, 0), 0x00FF00, false)); // +Y
 
-  let secHeight = height / 4;
+  secHeight = height / 4;
   let tempY;
   // Split-line for each section
   for(let i = 1; i < 4 ; i++) {
@@ -107,6 +115,7 @@ function animateTimeline() {
   requestAnimationFrame(animateTimeline);
   // If we want control then we can add this
   // controls.update();
+  renderTimeline();
 }
 
 //
@@ -121,8 +130,4 @@ function resizeTimeline() {
   renderer.setSize(width, height);
   
   renderTimeline();
-}
-
-function toogleGridHelper() {
-  
 }

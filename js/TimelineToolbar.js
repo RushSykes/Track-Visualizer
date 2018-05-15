@@ -49,7 +49,13 @@ function initTimelineToolbar() {
 	maxTime = document.createElement('input'); maxTime.setAttribute('id', "maxTime"); maxTime.setAttribute('type', "time");
 
 	// Update if needed (for example the user might input a time using date and time but not the range)
-	let btnUpdateTimeRange = document.createElement('button');
+	let btnDrawAll = document.createElement('button');
+	btnDrawAll.innerText = "Draw\nAll";
+	btnDrawAll.addEventListener('click', drawAll);
+
+	let btnUpdateAll = document.createElement('button');
+	btnUpdateAll.innerText = "Update\nAll";
+	btnUpdateAll.addEventListener('click', updateAll);
 
 	// Append to wrappers
 	minWrapper.appendChild(minDate);
@@ -63,6 +69,8 @@ function initTimelineToolbar() {
 	// Append to containers
 	timelineToolContainer.appendChild(minWrapper);
 	timelineToolContainer.appendChild(maxWrapper);
+	timelineToolContainer.appendChild(btnDrawAll);
+	timelineToolContainer.appendChild(btnUpdateAll);
 
 	// Vertical line as filter
 	minLine = buildAxisTimeline(new THREE.Vector3(width / 3, 0, 0), new THREE.Vector3(width / 3, height, 0), 0xFFFFFF, false);
@@ -85,4 +93,12 @@ function onchangeMax() {
 	if(rangeSliderMax.valueAsNumber <= rangeSliderMin.valueAsNumber) {
 		rangeSliderMax.value = rangeSliderMin.valueAsNumber + 1;
 	}
+}
+
+function drawAll() {
+
+}
+
+function updateAll() {
+
 }
