@@ -98,19 +98,17 @@ function onchangeMax() {
 }
 
 function timelineDrawAll() {
-	const allLines = trackManager.timelineDrawAll(secHeight);
+	const allLines = trackManager.timelineDrawAll(secHeight, timelineWidth);
 	const len = allLines.length;
 	if(allLines.length > 0) {
 	  for(let i = 0 ;i < len; i++) {
-			if(allLines[i].geometry.vertices.length > 1) {
-				lineParent.add(allLines[i]);
-			}
+			lineParent.add(allLines[i]);
 	  }
 	}
 }
 
 function timelineUpdateAll() {
-  const modifiedLines = trackManager.timelineUpdateModified(secHeight);
+  const modifiedLines = trackManager.timelineUpdateModified(secHeight, timelineWidth);
   const modifiedNum = modifiedLines.length;
 
   if(modifiedNum > 0)
@@ -118,9 +116,7 @@ function timelineUpdateAll() {
     for(let i = 0; i < modifiedNum; i++) {
       let oldTrack = timelineScene.getObjectByName(modifiedLines[i].name);
       lineParent.remove(oldTrack);
-      if(modifiedLines[i].geometry.vertices.length > 1) {
-        lineParent.add(modifiedLines[i]);
-      } 
+      lineParent.add(modifiedLines[i]);
     }
   }
 }

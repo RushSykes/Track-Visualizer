@@ -777,7 +777,7 @@ class TrackManager {
     return false;
   }
 
-  timelineDrawTrackNo(trackNo, secHeight) {
+  timelineDrawTrackNo(trackNo, secHeight, right) {
     const speedMin = secHeight * 3;
     const straightnessMin = speedMin - secHeight;
     let polyLines = new THREE.Object3D();
@@ -796,9 +796,9 @@ class TrackManager {
         let timeDiff = (timeArray[i+1] - timeArray[i])/1000; // Unit: s
         let avgSpeed = (distance*3.6/timeDiff); // m/s * 3.6 --> km/h
         // Normalize first
-        let x = (10000.0*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
-        let y = (secHeight*(avgSpeed/200.0)) + speedMin;
         // X-axis-->Time Y-axis-->Speed
+        let x = (right*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
+        let y = (secHeight*(avgSpeed/1080000)) + speedMin;
         let point = new THREE.Vector3(x, y, 0.0);
         points3D.vertices.push(point);
       }
@@ -811,9 +811,9 @@ class TrackManager {
         let distance3 = selectedTrack[i-1].distance(selectedTrack[i]) + selectedTrack[i+1].distance(selectedTrack[i]);
         let distance2 = selectedTrack[i-1].distance(selectedTrack[i+1]);
         let straightness = distance2 / distance3;
-
+        // Normalize first
         // X-axis-->Time Y-axis-->Straightness
-        let x = (10000.0*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
+        let x = (right*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
         let y = (secHeight*straightness) + straightnessMin;
         let point = new THREE.Vector3(x, y, 0.0);
         points3D.vertices.push(point);
@@ -838,11 +838,14 @@ class TrackManager {
 
   }
 
-  timelineDrawAll(secHeight) {
+  timelineDrawAll(secHeight, right) {
+    this.updateMinTimeStamp();
+    this.updateMaxTimeStamp();
+    
     let head = this.trackMgrHead;
     let allTrack = new Array();
     while(head) {
-      let temp = this.timelineDrawTrackNo(head.trackNo, secHeight);
+      let temp = this.timelineDrawTrackNo(head.trackNo, secHeight, right);
       console.log(temp);
       if(temp) {
         allTrack.push(temp);
@@ -864,7 +867,7 @@ class TrackManager {
     }
   }
 
-  timelineUpdateModified(secHeight) {
+  timelineUpdateModified(secHeight, right) {
     // All modified tracks are going to be returned
     let modifiedLines = new Array();
 

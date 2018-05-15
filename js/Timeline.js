@@ -2,7 +2,7 @@
 let timelineContainer, timelineWidth, timelineHeight, secHeight;
 
 // Global reference of three.js variables
-let timelineRenderer, timelineScene, timelineCamera, timelineStats, timelineControls;
+let timelineRenderer, timelineScene, timelineCamera, timelineStats, timelineAxes, timelineControls;
 
 // GLobal reference of timeline min and max slider line
 let minLine, maxLine;
@@ -25,18 +25,19 @@ function initTimeline() {
   timelineRenderer = new THREE.WebGLRenderer({antialias: true});
   timelineRenderer.setSize(timelineWidth, timelineHeight);
   timelineRenderer.setClearColor(0x3486AD, 1.0);
-  timelineContainer.appendChild(timelineRenderer.domElement); // The timelineRenderer is a child of the coord div part
+  timelineContainer.appendChild(timelineRenderer.domElement); // The timelineRenderer is a child of the timeline div part
 
   // Set up a new timelineScene
   timelineScene = new THREE.Scene();
 
   // Add axes
-	let axes = buildAxesTimeline(10000);
-  timelineScene.add(axes);
+	timelineAxes = buildAxesTimeline(10000);
+  timelineScene.add(timelineAxes);
 
   // Set timelineCamera
-  timelineCamera = new THREE.OrthographicCamera(timelineWidth/-2, timelineWidth/2, timelineHeight/2, timelineHeight/-2, 1, 1000);
-  timelineCamera.position.set(timelineWidth/2-2, timelineHeight/2-2, 100);
+  timelineCamera = new THREE.OrthographicCamera(timelineWidth/-2, timelineWidth/2, timelineHeight/2, timelineHeight/-2, 1, 20000);
+  timelineCamera.position.set(timelineWidth/2-2, timelineHeight/2-2, 500);
+  timelineCamera.up.set(0, 1, 0);
   //timelineCamera.lookAt(new THREE.Vector3(timelineWidth/2-2, timelineHeight/2-2, 0));
 
   // Div container timelineStats
@@ -57,10 +58,11 @@ function initTimeline() {
 
   lineParent = new THREE.Object3D();
   timelineScene.add(lineParent);
+
   // Listeners
   window.addEventListener('resize', resizeTimeline, false);
   timelineControls.addEventListener('change', renderTimeline);
-
+  timelineContainer.addEventListener('transitionend', resizeTimeline);
   // Start render
   renderTimeline();
 }
