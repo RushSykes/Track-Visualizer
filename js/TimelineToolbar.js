@@ -51,11 +51,13 @@ function initTimelineToolbar() {
 	// Update if needed (for example the user might input a time using date and time but not the range)
 	let btnDrawAll = document.createElement('button');
 	btnDrawAll.innerText = "Draw\nAll";
-	btnDrawAll.addEventListener('click', drawAll);
+	btnDrawAll.setAttribute("style", "position:absolute; height:36px; width:80px; left:80%");
+	btnDrawAll.addEventListener('click', timelineDrawAll);
 
 	let btnUpdateAll = document.createElement('button');
 	btnUpdateAll.innerText = "Update\nAll";
-	btnUpdateAll.addEventListener('click', updateAll);
+	btnUpdateAll.setAttribute("style", "position:absolute; height:36px; width:80px; left:80%; top:36px");
+	btnUpdateAll.addEventListener('click', timelineUpdateAll);
 
 	// Append to wrappers
 	minWrapper.appendChild(minDate);
@@ -73,10 +75,10 @@ function initTimelineToolbar() {
 	timelineToolContainer.appendChild(btnUpdateAll);
 
 	// Vertical line as filter
-	minLine = buildAxisTimeline(new THREE.Vector3(width / 3, 0, 0), new THREE.Vector3(width / 3, height, 0), 0xFFFFFF, false);
-	maxLine = buildAxisTimeline(new THREE.Vector3(width / 3 * 2, 0, 0), new THREE.Vector3(width / 3 * 2, height, 0), 0xFFFFFF, false);
-	scene.add(minLine);
-	scene.add(maxLine);
+	minLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3, 0, 0), new THREE.Vector3(timelineWidth / 3, 10000, 0), 0xFFFFFF, false);
+	maxLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3 * 2, 0, 0), new THREE.Vector3(timelineWidth / 3 * 2, 10000, 0), 0xFFFFFF, false);
+	timelineScene.add(minLine);
+	timelineScene.add(maxLine);
 }
 
 function onchangeMin() {
@@ -95,10 +97,30 @@ function onchangeMax() {
 	}
 }
 
-function drawAll() {
-
+function timelineDrawAll() {
+	const allLines = trackManager.timelineDrawAll(secHeight);
+	const len = allLines.length;
+	if(allLines.length > 0) {
+	  for(let i = 0 ;i < len; i++) {
+			if(allLines[i].geometry.vertices.length > 1) {
+				lineParent.add(allLines[i]);
+			}
+	  }
+	}
 }
 
-function updateAll() {
+function timelineUpdateAll() {
+  const modifiedLines = trackManager.timelineUpdateModified(secHeight);
+  const modifiedNum = modifiedLines.length;
 
+  if(modifiedNum > 0)
+  {
+    for(let i = 0; i < modifiedNum; i++) {
+      let oldTrack = timelineScene.getObjectByName(modifiedLines[i].name);
+      lineParent.remove(oldTrack);
+      if(modifiedLines[i].geometry.vertices.length > 1) {
+        lineParent.add(modifiedLines[i]);
+      } 
+    }
+  }
 }

@@ -83,9 +83,7 @@ function toggleGrid() {
 function drawSelected() {
   const selectedTrack = trackManager.abstractDrawSelected();
   if(selectedTrack) {
-    //scene.add(selectedTrack);
     trackParent.add(selectedTrack);
-    //render();
   }
 }
 
@@ -95,12 +93,10 @@ function drawAll() {
   if(allTrack.length > 0) {
     for(let i = 0 ;i < len; i++) {
       if(allTrack[i].geometry.vertices.length > 1) {
-        //scene.add(allTrack[i]);
         trackParent.add(allTrack[i]);
       }
     }
   }
-  //render();
 }
 
 function updateAll() {
@@ -112,16 +108,11 @@ function updateAll() {
   {
     for(let i = 0; i < modifiedNum; i++) {
       let oldTrack = scene.getObjectByName(modifiedTracks[i].name);
-      //console.log(oldTrack);
-      //scene.remove(oldTrack);
       trackParent.remove(oldTrack);
       if(modifiedTracks[i].geometry.vertices.length > 1) {
-        //console.log(modifiedTracks[i]);
-        //scene.add(modifiedTracks[i]);
         trackParent.add(modifiedTracks[i]);
       } 
     }
-    //render();
   }
 }
 

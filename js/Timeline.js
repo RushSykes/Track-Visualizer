@@ -1,8 +1,8 @@
 // Global reference of html elements and attributes
-let timelineContainer, timelineIndicator, width, height, secHeight;
+let timelineContainer, timelineWidth, timelineHeight, secHeight;
 
 // Global reference of three.js variables
-let renderer, scene, camera, stats, controls;
+let timelineRenderer, timelineScene, timelineCamera, timelineStats, timelineControls;
 
 // GLobal reference of timeline min and max slider line
 let minLine, maxLine;
@@ -19,38 +19,47 @@ animateTimeline();
 function initTimeline() {
   // timeline
   timelineContainer = document.getElementById('timelineContainer');
-  width = timelineContainer.clientWidth, height = timelineContainer.clientHeight;
+  timelineWidth = timelineContainer.clientWidth, timelineHeight = timelineContainer.clientHeight;
 
-  // Set renderer
-  renderer = new THREE.WebGLRenderer({antialias: true});
-  renderer.setSize(width, height);
-  renderer.setClearColor(0x3486AD, 1.0);
-  timelineContainer.appendChild(renderer.domElement); // The renderer is a child of the coord div part
+  // Set timelineRenderer
+  timelineRenderer = new THREE.WebGLRenderer({antialias: true});
+  timelineRenderer.setSize(timelineWidth, timelineHeight);
+  timelineRenderer.setClearColor(0x3486AD, 1.0);
+  timelineContainer.appendChild(timelineRenderer.domElement); // The timelineRenderer is a child of the coord div part
 
-  // Set up a new scene
-  scene = new THREE.Scene();
+  // Set up a new timelineScene
+  timelineScene = new THREE.Scene();
 
   // Add axes
 	let axes = buildAxesTimeline(10000);
-  scene.add(axes);
+  timelineScene.add(axes);
 
-  // Set camera
-  camera = new THREE.OrthographicCamera(width/-2, width/2, height/2, height/-2, 1, 1000);
-  camera.position.set(width/2-2, height/2-2, 100);
-  camera.lookAt(new THREE.Vector3(width/2-2, height/2-2, 0));
-  
-  // Div container stats
-  stats = new Stats();
+  // Set timelineCamera
+  timelineCamera = new THREE.OrthographicCamera(timelineWidth/-2, timelineWidth/2, timelineHeight/2, timelineHeight/-2, 1, 1000);
+  timelineCamera.position.set(timelineWidth/2-2, timelineHeight/2-2, 100);
+  //timelineCamera.lookAt(new THREE.Vector3(timelineWidth/2-2, timelineHeight/2-2, 0));
+
+  // Div container timelineStats
+  timelineStats = new Stats();
   // Dev tool for performance(stats in the left-top corner)
-  // container.appendChild(stats.dom);
+  //container.appendChild(stats.dom);
 
-  // Ortho Trackball controls
-  controls = new OrthographicTrackballControls(camera, renderer.domElement);
+  // Ortho Trackball timelineControls
+  timelineControls = new THREE.OrthographicTrackballControls(timelineCamera, timelineRenderer.domElement);
+  timelineControls.panSpeed = 0.8;
+  timelineControls.zoomSpeed = 1.2;
+  timelineControls.noPan = false;
+  timelineControls.noZoom = false;
+  timelineControls.noRotate = true;
+  timelineControls.staticMoving = true;
+  timelineControls.dynamicDampingFactor = 0;
+  timelineControls.target = new THREE.Vector3(timelineWidth/2-2, timelineHeight/2-2, 0);
 
   lineParent = new THREE.Object3D();
-  scene.add(lineParent);
+  timelineScene.add(lineParent);
   // Listeners
   window.addEventListener('resize', resizeTimeline, false);
+  timelineControls.addEventListener('change', renderTimeline);
 
   // Start render
   renderTimeline();
@@ -66,10 +75,10 @@ function buildAxesTimeline(length) {
   axes.add(buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(length, 0, 0), 0xFF0000, false)); // +X
   axes.add(buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, length, 0), 0x00FF00, false)); // +Y
 
-  secHeight = height / 4;
+  secHeight = timelineHeight / 4;
   let tempY;
   // Split-line for each section
-  for(let i = 1; i < 4 ; i++) {
+  for(let i = 1; i <= 4 ; i++) {
     tempY = secHeight*i;
     // Horizantal split-line
     axes.add(buildAxisTimeline(new THREE.Vector3(0, tempY, 0), new THREE.Vector3(length, tempY, 0), 0x000000, false));
@@ -104,8 +113,8 @@ function buildAxisTimeline(src, dst, colorHex, dashed) {
 // Render
 //
 function renderTimeline() {
-  renderer.render(scene, camera);
-  stats.update();
+  timelineRenderer.render(timelineScene, timelineCamera);
+  timelineStats.update();
 }
 
 //
@@ -113,8 +122,7 @@ function renderTimeline() {
 //
 function animateTimeline() {
   requestAnimationFrame(animateTimeline);
-  // If we want control then we can add this
-  // controls.update();
+  timelineControls.update();
   renderTimeline();
 }
 
@@ -122,12 +130,14 @@ function animateTimeline() {
 // Resize event
 //
 function resizeTimeline() {
-  width = timelineContainer.clientWidth, height = timelineContainer.clientHeight;
+  timelineWidth = timelineContainer.clientWidth, timelineHeight = timelineContainer.clientHeight;
 
-  camera.aspect = width/height;
-  camera.updateProjectionMatrix();
+  timelineCamera.aspect = timelineWidth/timelineHeight;
+  timelineCamera.updateProjectionMatrix();
 
-  renderer.setSize(width, height);
+  timelineRenderer.setSize(timelineWidth, timelineHeight);
+
+  timelineControls.handleResize();
   
   renderTimeline();
 }

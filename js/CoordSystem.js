@@ -56,6 +56,7 @@ function init() {
   controls.noPan = false;
   controls.staticMoving = true;
   controls.dynamicDampingFactor = 0;
+  controls.target = new THREE.Vector3(100, 100, 0);
 
   // Raycatser for selecting and highlighting
   rayCaster = new THREE.Raycaster();
@@ -100,7 +101,7 @@ function buildAxes(length) {
 // Helper function to build a single axis
 //
 function buildAxis(src, dst, colorHex, dashed) {
-    let geom = new THREE.Geometry(), mat; 
+    let geom = new THREE.Geometry(), mat;
 
     if(dashed) {
        mat = new THREE.LineDashedMaterial({linewidth: 3, color: colorHex, dashSize: 3, gapSize: 3});

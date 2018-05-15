@@ -7,10 +7,7 @@ const url = require('url');
 let toolContainer;
 
 // Indicate whether the coord system is displayed or not, default false
-let isCoordDisplayed = false;
-
-// Timeline system window
-let timelineWin = null;
+let isCoordDisplayed = false, isTimelineDisplayed = false;
 
 initToolbar();
 
@@ -55,7 +52,7 @@ function initToolbar() {
   // Timeline window
   let btnTimeline = document.createElement('button');
   btnTimeline.innerText = 'Timeline';
-  btnTimeline.addEventListener('click', openTimeline)
+  btnTimeline.addEventListener('click', toggleTimeline);
 
   toolContainer.appendChild(btnShowCoord);
   toolContainer.appendChild(btnAddNewTrack);
@@ -95,14 +92,14 @@ function toggleCoord() {
   const mapContainer = document.getElementById("mapContainer");
   const coordContainer = document.getElementById("coordContainer");
   const coordToolContainer = document.getElementById("coordToolContainer");
+  const timelineContainer = document.getElementById("timelineContainer");
+  const timelineToolContainer = document.getElementById("timelineToolbarContainer");
 
   if(!isCoordDisplayed) {
     mapContainer.className = "mapContainer_2";
     toolContainer.className = "toolContainer_2";
     coordContainer.className = "coordContainer_2";
     coordToolContainer.className = "coordToolContainer_2";
-    toolContainer.className
-
     isCoordDisplayed = true;
   }
   // The other way
@@ -113,6 +110,37 @@ function toggleCoord() {
     coordToolContainer.className = "coordToolContainer_0";
     isCoordDisplayed = false;
   }
+  timelineContainer.className = "timeline_0;"
+  timelineToolContainer.className = "timelineToolbar_0";
+}
+
+// Timeline
+function toggleTimeline() {
+  // Default it's off, so open it up when clicked
+  // Use css transition eventListener instead of replace .css files
+  const mapContainer = document.getElementById("mapContainer");
+  const coordContainer = document.getElementById("coordContainer");
+  const coordToolContainer = document.getElementById("coordToolContainer");
+  const timelineContainer = document.getElementById("timelineContainer");
+  const timelineToolContainer = document.getElementById("timelineToolbarContainer");
+
+  if(!isTimelineDisplayed) {
+    mapContainer.className = "mapContainer_2";
+    toolContainer.className = "toolContainer_2";
+    timelineContainer.className = "timeline_2";
+    timelineToolContainer.className = "timelineToolbar_2";
+    isTimelineDisplayed = true;
+  }
+  // The other way
+  else {
+    mapContainer.className = "mapContainer_1";
+    toolContainer.className = "toolContainer_1";
+    timelineContainer.className = "timeline_0";
+    timelineToolContainer.className = "timelineToolbar_0";
+    isTimelineDisplayed = false;
+  }
+  coordContainer.className = "coordContainer_0";
+  coordToolContainer.className = "coordToolContainer_0";
 }
 
 function addNewTrack() {
@@ -188,44 +216,4 @@ function saveTracks() {
     // NodeJS File API from now on
     //trackManager.saveTracks();
   }
-}
-
-// Timeline System
-function openTimeline() {
-  if(timelineWin === null) {
-    createTimelineWindow();
-    timelineWin.show();
-  }
-}
-
-function createTimelineWindow() {
-  timelineWin = new BrowserWindow({
-    width: 1440,
-    height: 900,
-    title: 'Timeline system'
-  });
-
-  // Get rid of the original menu
-  timelineWin.setMenu(null);
-
-  // and load the index.html of the app.
-  timelineWin.loadURL(url.format({
-    pathname: path.join(__dirname, 'timeline.html'),
-    protocol: 'file:',
-    slashes: true
-  }));
-
-  // Open the DevTools.
-  timelineWin.webContents.openDevTools()
-
-  // Emitted when the window is closed.
-  timelineWin.on('closed', () => {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    timelineWin = null
-  });
-
-  // Can't resize the window for good reasons
-  timelineWin.setResizable(false);
 }
