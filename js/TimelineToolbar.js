@@ -102,7 +102,7 @@ function timelineDrawAll() {
 	const len = allLines.length;
 	if(allLines.length > 0) {
 	  for(let i = 0 ;i < len; i++) {
-			lineParent.add(allLines[i]);
+		lineParent.add(allLines[i]);
 	  }
 	}
 }
@@ -110,7 +110,6 @@ function timelineDrawAll() {
 function timelineUpdateAll() {
   const modifiedLines = trackManager.timelineUpdateModified(secHeight, timelineWidth);
   const modifiedNum = modifiedLines.length;
-
   if(modifiedNum > 0)
   {
     for(let i = 0; i < modifiedNum; i++) {

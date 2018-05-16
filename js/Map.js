@@ -81,6 +81,7 @@ function addMarker(e) {
     // Make this marker visible on this map
     marker.setMap(map);
     trackManager.abstractMarkModified();
+    trackManager.timelineMarkModified();
     // Set some ext data that would be useful to the track manager
     marker.setExtData({
       trackNo: trackManager.getCurrentEditTrackNo(),
@@ -119,6 +120,7 @@ function deleteMarker(e) {
   trackManager.setCurrentEditNodeNo(trackManager.getCurrentEditTrackFirstNodeNo());
   trackManager.deleteTrackNode(thisMarkerTrackNo, thisMarkerNodeNo);
   trackManager.abstractMarkModified();
+  trackManager.timelineMarkModified();
   // Remove the marker on the map
   rightClickedMarker.setMap(null);
   // If there are more than two nodes in the current path
@@ -148,6 +150,7 @@ function deleteOneTrack(e) {
   // Clear markers behind
   trackManager.deleteTrack(thisMarkerTrackNo);
   trackManager.abstractMarkModified();
+  trackManager.timelineMarkModified();
   trackManager.hideInfo();
 }
 
@@ -174,6 +177,7 @@ function markerDragend(e) {
   const position = e.lnglat;
   //trackManager.showInfo(thisMarkerTrackNo, position);
   trackManager.abstractMarkModified();
+  trackManager.timelineMarkModified();
   toolbarInfoHelper();
 }
 
@@ -202,6 +206,7 @@ function updateInfo(e) {
     const newTime = document.getElementById("nodeDate").value + " " + document.getElementById("nodeTime").value;
     if(trackManager.updateNodeTime(thisMarkerTrackNo, thisMarkerNodeNo, newTime)) {
       trackManager.abstractMarkModified();
+      trackManager.timelineMarkModified();
     }
   }
   else {

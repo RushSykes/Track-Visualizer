@@ -7,8 +7,8 @@ let timelineRenderer, timelineScene, timelineCamera, timelineStats, timelineAxes
 // GLobal reference of timeline min and max slider line
 let minLine, maxLine;
 
-// Filtering
-let pointInter, lineParent;
+// Filtering & Raycasting
+let timelineRayCaster, timelineMouse, timelineInter, pointInter, lineParent;
 
 initTimeline();
 animateTimeline();
@@ -56,6 +56,14 @@ function initTimeline() {
   timelineControls.dynamicDampingFactor = 0;
   timelineControls.target = new THREE.Vector3(timelineWidth/2-2, timelineHeight/2-2, 0);
 
+  // Raycaster
+  timelineRayCaster = new THREE.Raycaster();
+  timelineRayCaster.linePrecision = 3;
+  timelineMouse = new THREE.Vector2();
+  pointInter = new THREE.Mesh(new THREE.SphereBufferGeometry(5), new THREE.MeshBasicMaterial({color: 0xff0000}));
+  pointInter.visible = false;
+  timelineScene.add(pointInter);
+
   lineParent = new THREE.Object3D();
   timelineScene.add(lineParent);
 
@@ -63,6 +71,8 @@ function initTimeline() {
   window.addEventListener('resize', resizeTimeline, false);
   timelineControls.addEventListener('change', renderTimeline);
   timelineContainer.addEventListener('transitionend', resizeTimeline);
+  timelineContainer.addEventListener('mousemove', timelineOnMouseMove);
+  timelineContainer.addEventListener('click', timelineOnClick);
   // Start render
   renderTimeline();
 }
@@ -115,6 +125,21 @@ function buildAxisTimeline(src, dst, colorHex, dashed) {
 // Render
 //
 function renderTimeline() {
+  timelineCamera.updateProjectionMatrix();
+  timelineRayCaster.setFromCamera(timelineMouse, timelineCamera);
+
+  let intersects = timelineRayCaster.intersectObjects(lineParent.children, true);
+
+  if(intersects.length > 0) {
+    timelineInter = intersects[0].object;
+    pointInter.visible = true;
+    pointInter.position.copy(intersects[0].point);
+  }
+  else {
+    timelineInter = undefined;
+    pointInter.visible = false;
+  }
+
   timelineRenderer.render(timelineScene, timelineCamera);
   timelineStats.update();
 }
@@ -142,4 +167,17 @@ function resizeTimeline() {
   timelineControls.handleResize();
   
   renderTimeline();
+}
+
+function timelineOnMouseMove(event) {
+  event.preventDefault();
+  timelineMouse.x = ((event.clientX - timelineContainer.offsetLeft) / timelineWidth) * 2 - 1;
+  timelineMouse.y = - ((event.clientY - timelineContainer.offsetTop) / timelineHeight) * 2 + 1;
+}
+
+function timelineOnClick(event) {
+  if(timelineInter !== undefined) {
+    const trackNo = timelineInter.parent.userData.trackNo;
+    trackManager.setCurrentEditTrack(trackNo);
+  }
 }
