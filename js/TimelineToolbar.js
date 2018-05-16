@@ -89,6 +89,18 @@ function onchangeMin() {
 	}
 }
 
+function updateSliders() {
+	const rangeSliderMin = document.getElementById("minRange");
+	const rangeSliderMax = document.getElementById("maxRange");
+
+	if(trackManager.getMinTimeStamp() < rangeSliderMin.valueAsNumber) {
+		rangeSliderMin.value = trackManager.getMinTimeStamp();
+	}
+	if(trackManager.getMaxTimeStamp() > rangeSliderMax.valueAsNumber) {
+		rangeSliderMax.value = trackManager.getMaxTimeStamp();
+	}
+}
+
 function onchangeMax() {
 	const rangeSliderMin = document.getElementById("minRange");
 	const rangeSliderMax = document.getElementById("maxRange");
@@ -110,13 +122,19 @@ function timelineDrawAll() {
 function timelineUpdateAll() {
   const modifiedLines = trackManager.timelineUpdateModified(secHeight, timelineWidth);
   const modifiedNum = modifiedLines.length;
+  console.log(modifiedNum);
 
   if(modifiedNum > 0)
   {
     for(let i = 0; i < modifiedNum; i++) {
-      let oldTrack = timelineScene.getObjectByName(modifiedLines[i].name);
-      lineParent.remove(oldTrack);
-      lineParent.add(modifiedLines[i]);
+		
+	  let oldTrack = timelineScene.getObjectByName(modifiedLines[i].name);
+	  console.log(oldTrack);
+	  console.log(modifiedLines[i]);
+	  lineParent.remove(oldTrack);
+	  if(modifiedLines[i].children.length>0){
+		lineParent.add(modifiedLines[i]);
+	  }
     }
   }
 }

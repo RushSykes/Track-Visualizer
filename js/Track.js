@@ -846,7 +846,6 @@ class TrackManager {
     let allTrack = new Array();
     while(head) {
       let temp = this.timelineDrawTrackNo(head.trackNo, secHeight, right);
-      console.log(temp);
       if(temp) {
         allTrack.push(temp);
       }
@@ -861,13 +860,15 @@ class TrackManager {
     for(let item of this.timeDrawnSet.values()) {
       if(item.userData.trackNo === modifiedTrackNo && !item.userData.modified) {
         item.userData.modified = true;
-        console.log("Modified\n");
+        console.log("Timline Modified\n");
         break;
       }
     }
   }
 
   timelineUpdateModified(secHeight, right) {
+    const speedMin = secHeight * 3;
+    const straightnessMin = speedMin - secHeight;
     // All modified tracks are going to be returned
     let modifiedLines = new Array();
 
@@ -892,8 +893,8 @@ class TrackManager {
             let timeDiff = (timeArray[i+1] - timeArray[i])/1000; // Unit: s
             let avgSpeed = (distance*3.6/timeDiff); // m/s * 3.6 --> km/h
             // Normalize first
-            let x = (10000.0*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
-            let y = (secHeight*(avgSpeed/200.0)) + speedMin;
+            let x = (right*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
+            let y = (secHeight*(avgSpeed/1080000)) + speedMin;
             // X-axis-->Time Y-axis-->Speed
             let point = new THREE.Vector3(x, y, 0.0);
             newPoints3D.vertices.push(point);
@@ -908,7 +909,7 @@ class TrackManager {
             let straightness = distance2 / distance3;
 
             // X-axis-->Time Y-axis-->Straightness
-            let x = (10000.0*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
+            let x = (right*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
             let y = (secHeight*straightness) + straightnessMin;
             let point = new THREE.Vector3(x, y, 0.0);
             newPoints3D.vertices.push(point);
@@ -918,32 +919,20 @@ class TrackManager {
           newPolyLines.add(speedPolyLine);
           newPolyLines.add(straightnessPolyLine);
           newPolyLines.userData = {
-            trackNo: trackNo,
-            modified: false,
-            material: mat
-          };
-          for(let i = 0; i < trackLen; i++) {
-            // X-axis-->Longitude Y-axis-->Latitude
-            let x = modifiedTrack[i].getLng();
-            let y = modifiedTrack[i].getLat();
-            let point = new THREE.Vector3(x, y, (timeArray[i] - timeArray[0])/50);
-            newPoints3D.vertices.push(point);
-          }
-          let newPolyLines = new THREE.Line(newPoints3D, mat);
-          newPolyLines.userData = {
             trackNo: item.userData.trackNo,
             modified: false,
             material: mat
           };
-          newPolyLines.name = "Track" + item.userData.trackNo;
+          newPolyLines.name = "Track" + newPolyLines.userData.trackNo;
           this.timeDrawnSet.add(newPolyLines);
           modifiedLines.push(newPolyLines);
         }
         else {
           // Timeline-related lines of This track is deleted
-          item.geometry.vertices.splice(0,item.geometry.vertices.length);
+          // item.geometry.vertices.splice(0, item.geometry.vertices.length);
           item.userData.modified = false;
-          item.geometry.verticesNeedUpdate = true;
+          item.children = new Array(); // Null
+          // item.geometry.verticesNeedUpdate = true;
           item.name = "Track" + item.userData.trackNo;
           let newItem = item.clone(true);
           modifiedLines.push(newItem);
