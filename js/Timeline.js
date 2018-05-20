@@ -4,9 +4,6 @@ let timelineContainer, timelineWidth, timelineHeight, secHeight;
 // Global reference of three.js variables
 let timelineRenderer, timelineScene, timelineCamera, timelineStats, timelineAxes, timelineControls;
 
-// GLobal reference of timeline min and max slider line
-let minLine, maxLine;
-
 // Filtering & Raycasting
 let timelineRayCaster, timelineMouse, timelineInter, pointInter, lineParent;
 
@@ -165,6 +162,8 @@ function resizeTimeline() {
   timelineRenderer.setSize(timelineWidth, timelineHeight);
 
   timelineControls.handleResize();
+  updateFilterPositionMin();
+  updateFilterPositionMax()
   
   renderTimeline();
 }

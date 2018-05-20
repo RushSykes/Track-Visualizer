@@ -806,7 +806,6 @@ class TrackManager {
         let point = new THREE.Vector3(x, y, 0.0);
         points3D.vertices.push(point);
       }
-      console.log(points3D);
       let speedPolyLine = new THREE.Line(points3D, mat);
 
       // ===== Straghtness =====
@@ -850,7 +849,6 @@ class TrackManager {
     let allTrack = new Array();
     while(head) {
       let temp = this.timelineDrawTrackNo(head.trackNo, secHeight, right);
-      console.log(temp);
       if(temp) {
         allTrack.push(temp);
       }
@@ -872,6 +870,9 @@ class TrackManager {
   }
 
   timelineUpdateModified(secHeight, right) {
+    // If max and min time stamp has been updated too
+    this.updateMinTimeStamp();
+    this.updateMaxTimeStamp();
     const speedMin = secHeight * 3;
     const straightnessMin = speedMin - secHeight;
     // All modified tracks are going to be returned
