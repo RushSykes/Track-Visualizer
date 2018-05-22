@@ -1002,17 +1002,13 @@ class TrackManager {
   }
 
   timelineUpdateModified(secHeight, right) {
-<<<<<<< HEAD
-    const speedMin = secHeight * 3;
-    const straightnessMin = speedMin - secHeight;
-=======
     // If max and min time stamp has been updated too
     this.updateMinTimeStamp();
     this.updateMaxTimeStamp();
     const speedMin = secHeight * 2;
     const straightnessMin = speedMin - secHeight;
     const curveMin = straightnessMin - secHeight;
->>>>>>> dev
+
     // All modified tracks are going to be returned
     let modifiedLines = new Array();
 
@@ -1079,10 +1075,8 @@ class TrackManager {
           // ===== Wrapper =====
           newPolyLines.add(speedPolyLine);
           newPolyLines.add(straightnessPolyLine);
-<<<<<<< HEAD
-=======
           newPolyLines.add(curvaturePolyLine);
->>>>>>> dev
+
           newPolyLines.userData = {
             trackNo: item.userData.trackNo,
             modified: false,
@@ -1094,15 +1088,14 @@ class TrackManager {
         }
         else {
           // Timeline-related lines of This track is deleted
-<<<<<<< HEAD
           // item.geometry.vertices.splice(0, item.geometry.vertices.length);
           item.userData.modified = false;
           item.children = new Array(); // Null
-=======
+
           // item.geometry.vertices.splice(0,item.geometry.vertices.length);
           item.userData.modified = false;
           item.children = new Array();
->>>>>>> dev
+
           // item.geometry.verticesNeedUpdate = true;
           item.name = "Track" + item.userData.trackNo;
           let newItem = item.clone(true);

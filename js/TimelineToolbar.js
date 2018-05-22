@@ -134,11 +134,8 @@ function timelineDrawAll() {
 function timelineUpdateAll() {
   const modifiedLines = trackManager.timelineUpdateModified(secHeight, timelineWidth);
   const modifiedNum = modifiedLines.length;
-<<<<<<< HEAD
   console.log(modifiedNum);
 
-=======
->>>>>>> dev
   if(modifiedNum > 0)
   {
     for(let i = 0; i < modifiedNum; i++) {

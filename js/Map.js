@@ -81,11 +81,8 @@ function addMarker(e) {
     marker.setMap(map);
     trackManager.abstractMarkModified();
     trackManager.timelineMarkModified();
-<<<<<<< HEAD
-=======
     trackManager.updateMinTimeStamp();
     trackManager.updateMaxTimeStamp();
->>>>>>> dev
     // Set some ext data that would be useful to the track manager
     marker.setExtData({
       trackNo: trackManager.getCurrentEditTrackNo(),
