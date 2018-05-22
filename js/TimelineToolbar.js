@@ -29,6 +29,7 @@ function initTimelineToolbar() {
 	rangeSliderMin.setAttribute('step', "1");
 	rangeSliderMin.setAttribute('value', 4);
 	rangeSliderMin.addEventListener('change', onchangeMin);
+	rangeSliderMin.addEventListener('input', updateFilterPositionMin);
 
 	// Range slider for time-filtering, upper bound
 	let rangeSliderMax = document.createElement('input');
@@ -40,6 +41,7 @@ function initTimelineToolbar() {
 	rangeSliderMax.setAttribute('step', "1");
 	rangeSliderMax.setAttribute('value', 6);
 	rangeSliderMax.addEventListener('change', onchangeMax);
+	rangeSliderMax.addEventListener('input', updateFilterPositionMax);
 
 	// Time related text field
 	let minDate, minTime, maxDate, maxTime;
@@ -75,8 +77,8 @@ function initTimelineToolbar() {
 	timelineToolContainer.appendChild(btnUpdateAll);
 
 	// Vertical line as filter
-	minLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3, 0, 0), new THREE.Vector3(timelineWidth / 3, 10000, 0), 0xFFFFFF, false);
-	maxLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3 * 2, 0, 0), new THREE.Vector3(timelineWidth / 3 * 2, 10000, 0), 0xFFFFFF, false);
+	let minLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3, 0, 0), new THREE.Vector3(timelineWidth / 3, 10000, 0), 0x000000, false); minLine.name = "minLine";
+	let maxLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3 * 2, 0, 0), new THREE.Vector3(timelineWidth / 3 * 2, 10000, 0), 0x000000, false); maxLine.name = "maxLine";
 	timelineScene.add(minLine);
 	timelineScene.add(maxLine);
 }
@@ -85,8 +87,10 @@ function onchangeMin() {
 	const rangeSliderMin = document.getElementById("minRange");
 	const rangeSliderMax = document.getElementById("maxRange");
 	if(rangeSliderMin.valueAsNumber >= rangeSliderMax.valueAsNumber) {
-		rangeSliderMin.value = rangeSliderMax.valueAsNumber - 1;
+		rangeSliderMin.value = rangeSliderMax.valueAsNumber;
 	}
+	updateFilterPositionMin();
+	updateFilterTimeMin();
 }
 
 function updateSliders() {
@@ -105,8 +109,10 @@ function onchangeMax() {
 	const rangeSliderMin = document.getElementById("minRange");
 	const rangeSliderMax = document.getElementById("maxRange");
 	if(rangeSliderMax.valueAsNumber <= rangeSliderMin.valueAsNumber) {
-		rangeSliderMax.value = rangeSliderMin.valueAsNumber + 1;
+		rangeSliderMax.value = rangeSliderMin.valueAsNumber;
 	}
+	updateFilterPositionMax();
+	updateFilterTimeMax();
 }
 
 function timelineDrawAll() {
@@ -114,16 +120,25 @@ function timelineDrawAll() {
 	const len = allLines.length;
 	if(allLines.length > 0) {
 	  for(let i = 0 ;i < len; i++) {
-			lineParent.add(allLines[i]);
+		lineParent.add(allLines[i]);
 	  }
 	}
+	updateRangers();
+	updateFilters();
+	updateFilterPositionMin();
+	updateFilterTimeMin();
+	updateFilterPositionMax();
+	updateFilterTimeMax();
 }
 
 function timelineUpdateAll() {
   const modifiedLines = trackManager.timelineUpdateModified(secHeight, timelineWidth);
   const modifiedNum = modifiedLines.length;
+<<<<<<< HEAD
   console.log(modifiedNum);
 
+=======
+>>>>>>> dev
   if(modifiedNum > 0)
   {
     for(let i = 0; i < modifiedNum; i++) {
@@ -136,5 +151,95 @@ function timelineUpdateAll() {
 		lineParent.add(modifiedLines[i]);
 	  }
     }
-  }
+	}
+	
+	updateRangers();
+	updateFilters();
+	updateFilterPositionMin();
+	updateFilterTimeMin();
+	updateFilterPositionMax();
+	updateFilterTimeMax();
+}
+
+function updateRangers() {
+	const newMinValue = trackManager.getMinTimeStamp();
+	const newMaxValue = trackManager.getMaxTimeStamp();
+
+  // Update ranger
+  const rangeSliderMin = document.getElementById("minRange");
+  rangeSliderMin.setAttribute('min', newMinValue);
+	rangeSliderMin.setAttribute('max', newMaxValue);
+	rangeSliderMin.value = newMinValue;
+	const rangeSliderMax = document.getElementById("maxRange");
+	rangeSliderMax.setAttribute('min', newMinValue);
+	rangeSliderMax.setAttribute('max', newMaxValue);
+	rangeSliderMax.value = newMinValue + 1;
+}
+
+function updateFilters() {
+  // Update filter lines
+  let oldMinLine = timelineScene.getObjectByName("minLine");
+  let oldMaxLine = timelineScene.getObjectByName("maxLine");
+  timelineScene.remove(oldMinLine); timelineScene.remove(oldMaxLine);
+
+	// Reset line positions
+	let minLine = buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 10000, 0), 0x000000, false); minLine.name = "minLine";
+	let maxLine = buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 10000, 0), 0x000000, false); maxLine.name = "maxLine";
+
+	timelineScene.add(minLine);
+	timelineScene.add(maxLine);
+}
+
+function updateFilterPositionMin() {
+	// Update ranger
+	let minLine = timelineScene.getObjectByName("minLine");
+	const minValue = trackManager.getMinTimeStamp();
+	const maxValue = trackManager.getMaxTimeStamp();
+	const rangeSliderMin = document.getElementById("minRange");
+	const rangeNewPos = rangeSliderMin.valueAsNumber;
+	let x = (timelineWidth*(rangeNewPos-minValue))/(maxValue-minValue);
+	minLine.position.set(x, minLine.position.y, minLine.position.z);
+}
+
+function updateFilterPositionMax() {
+	// Update ranger
+	let maxLine = timelineScene.getObjectByName("maxLine");
+	const minValue = trackManager.getMinTimeStamp();
+	const maxValue = trackManager.getMaxTimeStamp();
+	const rangeSliderMax = document.getElementById("maxRange");
+	const rangeNewPos = rangeSliderMax.valueAsNumber;
+	let x = (timelineWidth*(rangeNewPos-minValue))/(maxValue-minValue);
+	maxLine.position.set(x, maxLine.position.y, maxLine.position.z);
+}
+
+function updateFilterTimeMin() {
+	const minStamp = document.getElementById("minRange").valueAsNumber;
+	let tempDate = new Date(minStamp);
+	let tempMonth = tempDate.getMonth() + 1; if(tempMonth < 10) tempMonth = "0" + tempMonth;
+	let tempDay = tempDate.getDate(); if(tempDay < 10) tempDay = "0" + tempDay;
+	let tempHour = tempDate.getHours(); if(tempHour < 10) tempHour = "0" + tempHour;
+	let tempMin = tempDate.getMinutes(); if(tempMin < 10) tempMin = "0" + tempMin;
+	let tempSec = tempDate.getSeconds(); if(tempSec < 10) tempSec = "0" + tempSec;
+
+	let dateValue = tempDate.getFullYear() + "-" + tempMonth + "-" + tempDay;
+	let timeValue = tempHour + ":" + tempMin + ":" + tempSec;
+
+	document.getElementById("minDate").value = dateValue;
+	document.getElementById("minTime").value = timeValue;
+}
+
+function updateFilterTimeMax() {
+	const maxStamp = document.getElementById("maxRange").valueAsNumber;
+	let tempDate = new Date(maxStamp);
+	let tempMonth = tempDate.getMonth() + 1; if(tempMonth < 10) tempMonth = "0" + tempMonth;
+	let tempDay = tempDate.getDate(); if(tempDay < 10) tempDay = "0" + tempDay;
+	let tempHour = tempDate.getHours(); if(tempHour < 10) tempHour = "0" + tempHour;
+	let tempMin = tempDate.getMinutes(); if(tempMin < 10) tempMin = "0" + tempMin;
+	let tempSec = tempDate.getSeconds(); if(tempSec < 10) tempSec = "0" + tempSec;
+
+	let dateValue = tempDate.getFullYear() + "-" + tempMonth + "-" + tempDay;
+	let timeValue = tempHour + ":" + tempMin + ":" + tempSec;
+
+	document.getElementById("maxDate").value = dateValue;
+	document.getElementById("maxTime").value = timeValue;
 }

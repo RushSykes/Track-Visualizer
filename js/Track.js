@@ -1,7 +1,4 @@
 // Declaration of structures being used to store track datas
-// TODO: 1. Implement Doubly-Linked list methods
-//       2. Implement track node handlers
-//       3. Implement track processing
 
 //
 // Structure that would form a node of a doubly-linked list
@@ -42,7 +39,8 @@ function TrackHead() {
       'background-color': 'yellow',
       'border':'solid 1px #0088ff',
     }
-  });
+  })
+  ;
 }
 
 //
@@ -64,6 +62,10 @@ class TrackManager {
 
     // Timeline part
     this.timeDrawnSet = new Set();
+
+    // Animate part
+    this.animSet = new Set();
+    this.deltaTime = -1;
   }
 
   addNewTrack() {
@@ -268,6 +270,7 @@ class TrackManager {
   }
 
   updateMinTimeStamp() {
+    this.minTime = Number.MAX_SAFE_INTEGER;
     let head = this.trackMgrHead;
 
     while(head) {
@@ -286,7 +289,16 @@ class TrackManager {
     return this.maxTime;
   }
 
+  getDeltaTime() {
+    return this.deltaTime;
+  }
+  
+  resetDeltaTime() {
+    this.deltaTime = -1;
+  }
+
   updateMaxTimeStamp() {
+    this.maxTime = Number.MIN_SAFE_INTEGER;
     let head = this.trackMgrHead;
 
     while(head) {
@@ -475,7 +487,11 @@ class TrackManager {
   }
 
   hideInfo() {
-    this.curEditTrackHead.infoBoard.setMap(null);
+    if(this.curEditTrackHead) {
+      if(this.curEditTrackHead.infoBoard) {
+      this.curEditTrackHead.infoBoard.setMap(null);
+      }
+    }
   }
 
   updateInfo(trackNo, mainInfo, details, position) {
@@ -592,6 +608,106 @@ class TrackManager {
     return dtwArray[lenA][lenB];
   }
 
+  // TODO: Animate
+  animateAll(map) {
+    let head = this.trackMgrHead;
+    if(this.deltaTime === -1) {
+      this.deltaTime = this.minTime;
+    }
+  
+    while(head) {
+      let curStartTime = this.getTrackTimeStampArray(head.trackNo)[0];
+      if( !this.animateIsAnimating(head.trackNo) && ((this.deltaTime-this.deltaTime%1000)===(curStartTime-curStartTime%1000)) ) {
+        this.animSet.add({
+          trackNo: head.trackNo,
+          curSeq: 0
+        });
+        console.log("Start: track " + head.trackNo +"\n");
+        this.animateTrack(head.trackNo, map);
+      } // If not in animSet
+      head = head.next;
+    } // While head
+    this.deltaTime += 1000;
+    console.log(this.deltaTime);
+  }
+
+  animateTrack(trackNo, map) {
+    if(this.animateIsAnimating(trackNo)) {
+      let track = this.getTrackAsArray(trackNo);
+      let timeArray = this.getTrackTimeStampArray(trackNo);
+
+      let startPos = track[0];
+      let movingMarker = new AMap.Marker({
+        position: startPos,
+        draggable: false,
+      });
+      movingMarker.setExtData({
+        trackNo: trackNo
+      });
+      movingMarker.setMap(map);
+      let context = {
+        mgr: this,
+        marker: movingMarker
+      }
+      // moveend will be called once moveTo end
+      movingMarker.on('moveend', function(e) {
+        let thisNo = this.marker.getExtData().trackNo;
+        let next = this.mgr.animateMove(thisNo);
+        if(next) {
+          this.marker.moveTo(next.dst, next.speed);
+        }
+        else {
+          // Reset animation here(remove them from animSet)
+          let animSet = this.mgr.animSet;
+          for(let item of animSet.values()) {
+            if(item.trackNo === trackNo) {
+              animSet.delete(item);
+              this.marker.setMap(null);
+              this.marker = null;
+            }
+          }
+        }
+      }, context);
+      let moveStartProp = this.animateMove(trackNo);
+      movingMarker.moveTo(moveStartProp.dst, moveStartProp.speed);
+    }
+  }
+
+  animateMove(trackNo) {
+    let dst, avgSpeed;
+    for(let item of this.animSet.values()) {
+      if(item.trackNo === trackNo) {
+        let track = this.getTrackAsArray(trackNo);
+        let time = this.getTrackTimeStampArray(trackNo);
+        let seqNo = item.curSeq;
+        if(seqNo <= track.length - 2) {
+          let distance = track[seqNo].distance(track[seqNo+1]); // Unit: m
+          let timeDiff = (time[seqNo+1] - time[seqNo])/1000; // Unit: s
+          avgSpeed = (distance*3.6/timeDiff); // m/s * 3.6 --> km/h
+          dst = track[seqNo+1];
+  
+          item.curSeq++;
+          return {
+            dst: dst,
+            speed: avgSpeed
+          };
+        }
+        else {
+          return null;
+        }
+      }
+    } // for
+  }
+
+  animateIsAnimating(trackNo) {
+    for(let item of this.animSet.values()) {
+      if(trackNo === item.trackNo) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // TODO: File-realted featrues
   loadTracks() {
 
@@ -613,7 +729,6 @@ class TrackManager {
     return false;
   }
 
-  // TODO: Size problem
   abstractDrawSelected() {
     const selectedTrackNo = this.getCurrentEditTrackNo();
     const selectedTrack = this.getTrackAsArray(selectedTrackNo);
@@ -778,8 +893,9 @@ class TrackManager {
   }
 
   timelineDrawTrackNo(trackNo, secHeight, right) {
-    const speedMin = secHeight * 3;
+    const speedMin = secHeight * 2;
     const straightnessMin = speedMin - secHeight;
+    const curveMin = straightnessMin - secHeight;
     let polyLines = new THREE.Object3D();
 
     const selectedTrack = this.getTrackAsArray(trackNo);
@@ -802,7 +918,6 @@ class TrackManager {
         let point = new THREE.Vector3(x, y, 0.0);
         points3D.vertices.push(point);
       }
-      console.log(points3D);
       let speedPolyLine = new THREE.Line(points3D, mat);
 
       // ===== Straghtness =====
@@ -819,9 +934,29 @@ class TrackManager {
         points3D.vertices.push(point);
       }
       let straightnessPolyLine = new THREE.Line(points3D, mat);
+
+      // ===== Curvature =====
+      points3D = new THREE.Geometry();
+      for(let i = 1; i < trackLen - 1; i++) {
+        let d1 = selectedTrack[i-1].distance(selectedTrack[i]);
+        let d2 = selectedTrack[i+1].distance(selectedTrack[i]);
+        let d3 = selectedTrack[i-1].distance(selectedTrack[i+1]);
+
+        let cos = (Math.pow(d1,2)+Math.pow(d2,2)-Math.pow(d3,2))/(2*d1*d2);
+        let tempAng = Math.acos(cos);
+        let ang = Math.PI - tempAng;
+        // Normalize first
+        let x = (right*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
+        let y = (secHeight*((ang*180/Math.PI)/180)) + curveMin;
+        let point = new THREE.Vector3(x, y, 0.0);
+        points3D.vertices.push(point);
+      }
+      let curvaturePolyLine = new THREE.Line(points3D, mat);
+
       // ===== Wrapper =====
       polyLines.add(speedPolyLine);
       polyLines.add(straightnessPolyLine);
+      polyLines.add(curvaturePolyLine);
       polyLines.userData = {
         trackNo: trackNo,
         modified: false,
@@ -867,15 +1002,23 @@ class TrackManager {
   }
 
   timelineUpdateModified(secHeight, right) {
+<<<<<<< HEAD
     const speedMin = secHeight * 3;
     const straightnessMin = speedMin - secHeight;
+=======
+    // If max and min time stamp has been updated too
+    this.updateMinTimeStamp();
+    this.updateMaxTimeStamp();
+    const speedMin = secHeight * 2;
+    const straightnessMin = speedMin - secHeight;
+    const curveMin = straightnessMin - secHeight;
+>>>>>>> dev
     // All modified tracks are going to be returned
     let modifiedLines = new Array();
 
     for(let item of this.timeDrawnSet.values()) {
       if(item.userData.modified) {
         // Remove the old one first
-        console.log(item.name+"\n");
         this.timeDrawnSet.delete(item);
         // Push a new one in
         let newPolyLines = new THREE.Object3D();
@@ -915,9 +1058,31 @@ class TrackManager {
             newPoints3D.vertices.push(point);
           }
           let straightnessPolyLine = new THREE.Line(newPoints3D, mat);
+
+          // ===== Curvature =====
+          newPoints3D = new THREE.Geometry();
+          for(let i = 1; i < trackLen - 1; i++) {
+            let d1 = modifiedTrack[i-1].distance(modifiedTrack[i]);
+            let d2 = modifiedTrack[i+1].distance(modifiedTrack[i]);
+            let d3 = modifiedTrack[i-1].distance(modifiedTrack[i+1]);
+
+            let cos = (Math.pow(d1,2)+Math.pow(d2,2)-Math.pow(d3,2))/(2*d1*d2);
+            let tempAng = Math.acos(cos);
+            let ang = Math.PI - tempAng;
+            // Normalize first
+            let x = (right*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
+            let y = (secHeight*((ang*180/Math.PI)/180)) + curveMin;
+            let point = new THREE.Vector3(x, y, 0.0);
+            newPoints3D.vertices.push(point);
+          }
+          let curvaturePolyLine = new THREE.Line(newPoints3D, mat);
           // ===== Wrapper =====
           newPolyLines.add(speedPolyLine);
           newPolyLines.add(straightnessPolyLine);
+<<<<<<< HEAD
+=======
+          newPolyLines.add(curvaturePolyLine);
+>>>>>>> dev
           newPolyLines.userData = {
             trackNo: item.userData.trackNo,
             modified: false,
@@ -929,9 +1094,15 @@ class TrackManager {
         }
         else {
           // Timeline-related lines of This track is deleted
+<<<<<<< HEAD
           // item.geometry.vertices.splice(0, item.geometry.vertices.length);
           item.userData.modified = false;
           item.children = new Array(); // Null
+=======
+          // item.geometry.vertices.splice(0,item.geometry.vertices.length);
+          item.userData.modified = false;
+          item.children = new Array();
+>>>>>>> dev
           // item.geometry.verticesNeedUpdate = true;
           item.name = "Track" + item.userData.trackNo;
           let newItem = item.clone(true);

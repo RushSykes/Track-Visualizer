@@ -46,7 +46,6 @@ function initMap() {
   markerContextMenu.addItem("Delete this marker", deleteMarker, 3);
   markerContextMenu.addItem("Delete this track", deleteOneTrack, 4);
 }
-// TODO: Add code that controls every marker e.g.: Divide them into different tracks, set their time tags etc.
 
 //
 // Functions on map
@@ -82,6 +81,11 @@ function addMarker(e) {
     marker.setMap(map);
     trackManager.abstractMarkModified();
     trackManager.timelineMarkModified();
+<<<<<<< HEAD
+=======
+    trackManager.updateMinTimeStamp();
+    trackManager.updateMaxTimeStamp();
+>>>>>>> dev
     // Set some ext data that would be useful to the track manager
     marker.setExtData({
       trackNo: trackManager.getCurrentEditTrackNo(),
@@ -129,6 +133,8 @@ function deleteMarker(e) {
     trackManager.drawTrack(trackManager.getCurrentEditTrackNo());
   }
   trackManager.hideInfo();
+  trackManager.updateMinTimeStamp();
+  trackManager.updateMaxTimeStamp();
   console.log("Current trackNo: " + thisMarkerTrackNo + "\nNode no: " + thisMarkerNodeNo);
 }
 
@@ -146,6 +152,10 @@ function deleteOneTrack(e) {
       allMarkers[i].setMap(null);
     }
   }
+
+  // Update
+  trackManager.updateMinTimeStamp();
+  trackManager.updateMaxTimeStamp();
 
   // Clear markers behind
   trackManager.deleteTrack(thisMarkerTrackNo);
