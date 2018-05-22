@@ -608,7 +608,7 @@ class TrackManager {
     return dtwArray[lenA][lenB];
   }
 
-  // TODO: Animate
+  // TODO: Animate, this will be called every second if possible
   animateAll(map) {
     let head = this.trackMgrHead;
     if(this.deltaTime === -1) {
