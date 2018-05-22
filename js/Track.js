@@ -1,7 +1,4 @@
 // Declaration of structures being used to store track datas
-// TODO: 1. Implement Doubly-Linked list methods
-//       2. Implement track node handlers
-//       3. Implement track processing
 
 //
 // Structure that would form a node of a doubly-linked list
@@ -732,7 +729,6 @@ class TrackManager {
     return false;
   }
 
-  // TODO: Size problem
   abstractDrawSelected() {
     const selectedTrackNo = this.getCurrentEditTrackNo();
     const selectedTrack = this.getTrackAsArray(selectedTrackNo);

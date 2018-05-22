@@ -46,7 +46,6 @@ function initMap() {
   markerContextMenu.addItem("Delete this marker", deleteMarker, 3);
   markerContextMenu.addItem("Delete this track", deleteOneTrack, 4);
 }
-// TODO: Add code that controls every marker e.g.: Divide them into different tracks, set their time tags etc.
 
 //
 // Functions on map
