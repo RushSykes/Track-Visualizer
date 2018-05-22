@@ -21,7 +21,7 @@ function initTimeline() {
   // Set timelineRenderer
   timelineRenderer = new THREE.WebGLRenderer({antialias: true});
   timelineRenderer.setSize(timelineWidth, timelineHeight);
-  timelineRenderer.setClearColor(0x3486AD, 1.0);
+  timelineRenderer.setClearColor(0xFFFFFF, 1.0);
   timelineContainer.appendChild(timelineRenderer.domElement); // The timelineRenderer is a child of the timeline div part
 
   // Set up a new timelineScene

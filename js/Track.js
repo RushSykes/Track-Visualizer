@@ -782,8 +782,9 @@ class TrackManager {
   }
 
   timelineDrawTrackNo(trackNo, secHeight, right) {
-    const speedMin = secHeight * 3;
+    const speedMin = secHeight * 2;
     const straightnessMin = speedMin - secHeight;
+    const curveMin = straightnessMin - secHeight;
     let polyLines = new THREE.Object3D();
 
     const selectedTrack = this.getTrackAsArray(trackNo);
@@ -822,9 +823,29 @@ class TrackManager {
         points3D.vertices.push(point);
       }
       let straightnessPolyLine = new THREE.Line(points3D, mat);
+
+      // ===== Curvature =====
+      points3D = new THREE.Geometry();
+      for(let i = 1; i < trackLen - 1; i++) {
+        let d1 = selectedTrack[i-1].distance(selectedTrack[i]);
+        let d2 = selectedTrack[i+1].distance(selectedTrack[i]);
+        let d3 = selectedTrack[i-1].distance(selectedTrack[i+1]);
+
+        let cos = (Math.pow(d1,2)+Math.pow(d2,2)-Math.pow(d3,2))/(2*d1*d2);
+        let tempAng = Math.acos(cos);
+        let ang = Math.PI - tempAng;
+        // Normalize first
+        let x = (right*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
+        let y = (secHeight*((ang*180/Math.PI)/180)) + curveMin;
+        let point = new THREE.Vector3(x, y, 0.0);
+        points3D.vertices.push(point);
+      }
+      let curvaturePolyLine = new THREE.Line(points3D, mat);
+
       // ===== Wrapper =====
       polyLines.add(speedPolyLine);
       polyLines.add(straightnessPolyLine);
+      polyLines.add(curvaturePolyLine);
       polyLines.userData = {
         trackNo: trackNo,
         modified: false,
@@ -873,8 +894,9 @@ class TrackManager {
     // If max and min time stamp has been updated too
     this.updateMinTimeStamp();
     this.updateMaxTimeStamp();
-    const speedMin = secHeight * 3;
+    const speedMin = secHeight * 2;
     const straightnessMin = speedMin - secHeight;
+    const curveMin = straightnessMin - secHeight;
     // All modified tracks are going to be returned
     let modifiedLines = new Array();
 
@@ -920,9 +942,28 @@ class TrackManager {
             newPoints3D.vertices.push(point);
           }
           let straightnessPolyLine = new THREE.Line(newPoints3D, mat);
+
+          // ===== Curvature =====
+          newPoints3D = new THREE.Geometry();
+          for(let i = 1; i < trackLen - 1; i++) {
+            let d1 = modifiedTrack[i-1].distance(modifiedTrack[i]);
+            let d2 = modifiedTrack[i+1].distance(modifiedTrack[i]);
+            let d3 = modifiedTrack[i-1].distance(modifiedTrack[i+1]);
+
+            let cos = (Math.pow(d1,2)+Math.pow(d2,2)-Math.pow(d3,2))/(2*d1*d2);
+            let tempAng = Math.acos(cos);
+            let ang = Math.PI - tempAng;
+            // Normalize first
+            let x = (right*(timeArray[i]-this.minTime))/(this.maxTime-this.minTime);
+            let y = (secHeight*((ang*180/Math.PI)/180)) + curveMin;
+            let point = new THREE.Vector3(x, y, 0.0);
+            newPoints3D.vertices.push(point);
+          }
+          let curvaturePolyLine = new THREE.Line(newPoints3D, mat);
           // ===== Wrapper =====
           newPolyLines.add(speedPolyLine);
           newPolyLines.add(straightnessPolyLine);
+          newPolyLines.add(curvaturePolyLine);
           newPolyLines.userData = {
             trackNo: item.userData.trackNo,
             modified: false,

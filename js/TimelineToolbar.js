@@ -77,8 +77,8 @@ function initTimelineToolbar() {
 	timelineToolContainer.appendChild(btnUpdateAll);
 
 	// Vertical line as filter
-	let minLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3, 0, 0), new THREE.Vector3(timelineWidth / 3, 10000, 0), 0xFFFFFF, false); minLine.name = "minLine";
-	let maxLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3 * 2, 0, 0), new THREE.Vector3(timelineWidth / 3 * 2, 10000, 0), 0xFFFFFF, false); maxLine.name = "maxLine";
+	let minLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3, 0, 0), new THREE.Vector3(timelineWidth / 3, 10000, 0), 0x000000, false); minLine.name = "minLine";
+	let maxLine = buildAxisTimeline(new THREE.Vector3(timelineWidth / 3 * 2, 0, 0), new THREE.Vector3(timelineWidth / 3 * 2, 10000, 0), 0x000000, false); maxLine.name = "maxLine";
 	timelineScene.add(minLine);
 	timelineScene.add(maxLine);
 }
@@ -161,8 +161,8 @@ function updateFilters() {
   timelineScene.remove(oldMinLine); timelineScene.remove(oldMaxLine);
 
 	// Reset line positions
-	let minLine = buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 10000, 0), 0xFFFFFF, false); minLine.name = "minLine";
-	let maxLine = buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 10000, 0), 0xFFFFFF, false); maxLine.name = "maxLine";
+	let minLine = buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 10000, 0), 0x000000, false); minLine.name = "minLine";
+	let maxLine = buildAxisTimeline(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 10000, 0), 0x000000, false); maxLine.name = "maxLine";
 
 	timelineScene.add(minLine);
 	timelineScene.add(maxLine);
