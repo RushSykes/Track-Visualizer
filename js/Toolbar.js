@@ -54,6 +54,11 @@ function initToolbar() {
   btnTimeline.innerText = 'Timeline';
   btnTimeline.addEventListener('click', toggleTimeline);
 
+  // Animate on map
+  let btnAnimate = document.createElement('button');
+  btnAnimate.innerText = 'Animate\ntracks';
+  btnAnimate.addEventListener('click', animateTracks);
+
   toolContainer.appendChild(btnShowCoord);
   toolContainer.appendChild(btnAddNewTrack);
   toolContainer.appendChild(inputMainInfo); // Info
@@ -62,6 +67,7 @@ function initToolbar() {
   toolContainer.appendChild(btnLoad);
   toolContainer.appendChild(btnSave);
   toolContainer.appendChild(btnTimeline);
+  toolContainer.appendChild(btnAnimate);
   toolContainer.appendChild(inputNodeDate);
   toolContainer.appendChild(inputNodeTime);
 
@@ -71,6 +77,8 @@ function initToolbar() {
   btnLoad.setAttribute('style', "position:absolute; top:36px; height:36px; width:80px; left:0px");
   btnSave.setAttribute('style', "position:absolute; top:36px; height:36px; width:80px; left:80px");
   btnTimeline.setAttribute('style', "position:absolute; top:36px; height:36px; width:80px; left:160px");
+  btnAnimate.setAttribute('style', "position: absolute; top: 44px; left: 360px");
+  btnAnimate.setAttribute('id', "animateButton");
 
   inputMainInfo.setAttribute('style', "position:absolute; top:0%; left:240px; width:200px");
   inputMainInfo.setAttribute('id', "infoMain");
@@ -143,6 +151,21 @@ function toggleTimeline() {
   coordToolContainer.className = "coordToolContainer_0";
 }
 
+function animateTracks() {
+  document.getElementById("animateButton").disabled = true;
+  trackManager.updateMinTimeStamp();
+  trackManager.updateMaxTimeStamp();
+  let timer = window.setInterval(function() {
+    trackManager.animateAll(map);
+    if(trackManager.getDeltaTime() >= trackManager.getMaxTimeStamp()) {
+      window.clearTimeout(timer);
+      trackManager.resetDeltaTime();
+      console.log("Animation done!\n");
+      document.getElementById("animateButton").disabled = false;
+    }
+  }, 1000);
+}
+
 function addNewTrack() {
   trackManager.addNewTrack();
   // Add a first track node at center to remind the user
@@ -173,6 +196,8 @@ function addNewTrack() {
   if(trackManager.addTrackNode(new Date().getTime(), marker.getPosition().lat,  marker.getPosition().lng, trackManager.getCurrentEditTrackNo())) {
     // Make this marker visible on this map
     marker.setMap(map);
+    trackManager.updateMinTimeStamp();
+    trackManager.updateMaxTimeStamp();
     // Set some ext data that would be useful to the track manager
     marker.setExtData({
       trackNo: trackManager.getCurrentEditTrackNo(),

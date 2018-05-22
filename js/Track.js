@@ -42,7 +42,8 @@ function TrackHead() {
       'background-color': 'yellow',
       'border':'solid 1px #0088ff',
     }
-  });
+  })
+  ;
 }
 
 //
@@ -64,6 +65,10 @@ class TrackManager {
 
     // Timeline part
     this.timeDrawnSet = new Set();
+
+    // Animate part
+    this.animSet = new Set();
+    this.deltaTime = -1;
   }
 
   addNewTrack() {
@@ -268,6 +273,7 @@ class TrackManager {
   }
 
   updateMinTimeStamp() {
+    this.minTime = Number.MAX_SAFE_INTEGER;
     let head = this.trackMgrHead;
 
     while(head) {
@@ -286,7 +292,16 @@ class TrackManager {
     return this.maxTime;
   }
 
+  getDeltaTime() {
+    return this.deltaTime;
+  }
+  
+  resetDeltaTime() {
+    this.deltaTime = -1;
+  }
+
   updateMaxTimeStamp() {
+    this.maxTime = Number.MIN_SAFE_INTEGER;
     let head = this.trackMgrHead;
 
     while(head) {
@@ -594,6 +609,106 @@ class TrackManager {
       }
     }
     return dtwArray[lenA][lenB];
+  }
+
+  // TODO: Animate
+  animateAll(map) {
+    let head = this.trackMgrHead;
+    if(this.deltaTime === -1) {
+      this.deltaTime = this.minTime;
+    }
+  
+    while(head) {
+      let curStartTime = this.getTrackTimeStampArray(head.trackNo)[0];
+      if( !this.animateIsAnimating(head.trackNo) && ((this.deltaTime-this.deltaTime%1000)===(curStartTime-curStartTime%1000)) ) {
+        this.animSet.add({
+          trackNo: head.trackNo,
+          curSeq: 0
+        });
+        console.log("Start: track " + head.trackNo +"\n");
+        this.animateTrack(head.trackNo, map);
+      } // If not in animSet
+      head = head.next;
+    } // While head
+    this.deltaTime += 1000;
+    console.log(this.deltaTime);
+  }
+
+  animateTrack(trackNo, map) {
+    if(this.animateIsAnimating(trackNo)) {
+      let track = this.getTrackAsArray(trackNo);
+      let timeArray = this.getTrackTimeStampArray(trackNo);
+
+      let startPos = track[0];
+      let movingMarker = new AMap.Marker({
+        position: startPos,
+        draggable: false,
+      });
+      movingMarker.setExtData({
+        trackNo: trackNo
+      });
+      movingMarker.setMap(map);
+      let context = {
+        mgr: this,
+        marker: movingMarker
+      }
+      // moveend will be called once moveTo end
+      movingMarker.on('moveend', function(e) {
+        let thisNo = this.marker.getExtData().trackNo;
+        let next = this.mgr.animateMove(thisNo);
+        if(next) {
+          this.marker.moveTo(next.dst, next.speed);
+        }
+        else {
+          // Reset animation here(remove them from animSet)
+          let animSet = this.mgr.animSet;
+          for(let item of animSet.values()) {
+            if(item.trackNo === trackNo) {
+              animSet.delete(item);
+              this.marker.setMap(null);
+              this.marker = null;
+            }
+          }
+        }
+      }, context);
+      let moveStartProp = this.animateMove(trackNo);
+      movingMarker.moveTo(moveStartProp.dst, moveStartProp.speed);
+    }
+  }
+
+  animateMove(trackNo) {
+    let dst, avgSpeed;
+    for(let item of this.animSet.values()) {
+      if(item.trackNo === trackNo) {
+        let track = this.getTrackAsArray(trackNo);
+        let time = this.getTrackTimeStampArray(trackNo);
+        let seqNo = item.curSeq;
+        if(seqNo <= track.length - 2) {
+          let distance = track[seqNo].distance(track[seqNo+1]); // Unit: m
+          let timeDiff = (time[seqNo+1] - time[seqNo])/1000; // Unit: s
+          avgSpeed = (distance*3.6/timeDiff); // m/s * 3.6 --> km/h
+          dst = track[seqNo+1];
+  
+          item.curSeq++;
+          return {
+            dst: dst,
+            speed: avgSpeed
+          };
+        }
+        else {
+          return null;
+        }
+      }
+    } // for
+  }
+
+  animateIsAnimating(trackNo) {
+    for(let item of this.animSet.values()) {
+      if(trackNo === item.trackNo) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // TODO: File-realted featrues

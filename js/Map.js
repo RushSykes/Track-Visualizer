@@ -82,6 +82,8 @@ function addMarker(e) {
     marker.setMap(map);
     trackManager.abstractMarkModified();
     trackManager.timelineMarkModified();
+    trackManager.updateMinTimeStamp();
+    trackManager.updateMaxTimeStamp();
     // Set some ext data that would be useful to the track manager
     marker.setExtData({
       trackNo: trackManager.getCurrentEditTrackNo(),
@@ -129,6 +131,8 @@ function deleteMarker(e) {
     trackManager.drawTrack(trackManager.getCurrentEditTrackNo());
   }
   trackManager.hideInfo();
+  trackManager.updateMinTimeStamp();
+  trackManager.updateMaxTimeStamp();
   console.log("Current trackNo: " + thisMarkerTrackNo + "\nNode no: " + thisMarkerNodeNo);
 }
 
@@ -146,6 +150,10 @@ function deleteOneTrack(e) {
       allMarkers[i].setMap(null);
     }
   }
+
+  // Update
+  trackManager.updateMinTimeStamp();
+  trackManager.updateMaxTimeStamp();
 
   // Clear markers behind
   trackManager.deleteTrack(thisMarkerTrackNo);
