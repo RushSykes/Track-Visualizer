@@ -138,11 +138,25 @@ class TrackManager {
   }
 
   deleteAllTracks() {
+    // Reset all vars
     this.numOfTracks = 0;
     this.trackMgrHead = null;
     this.trackMgrTail = null;
     this.curEditTrackNo = -1;
+    this.curEditNodeNo = -1;
     this.curEditTrackHead = null;
+    this.minTime = Number.MAX_SAFE_INTEGER;
+    this.maxTime = Number.MIN_SAFE_INTEGER;
+
+    // Abstract part
+    this.drawnSet = new Set();
+
+    // Timeline part
+    this.timeDrawnSet = new Set();
+
+    // Animate part
+    this.animSet = new Set();
+    this.deltaTime = -1;
   }
 
   getCurrentEditTrackHead() {
@@ -709,12 +723,42 @@ class TrackManager {
   }
 
   // TODO: File-realted featrues
-  loadTracks() {
-
+  loadTracks(path) {
+    let result = fs.readFileSync(path, "utf8");
+    return result;
   }
 
-  saveTracks() {
+  saveTracks(path) {
+    let head = this.trackMgrHead;
+    fs.open(path, 'w', function(err, fd) {
+      // Create a JSON array
+      let allJson = [];
+    
+      while(head) {
+        let dataHead = head.dataHead;
+        let onePath = [];
+        while(dataHead) {
+          let tempNode = {};
+          tempNode.time = dataHead.time;
+          tempNode.latitude = dataHead.latitude;
+          tempNode.longitude = dataHead.longitude;
+          onePath.push(tempNode);
+          dataHead = dataHead.next;
+        }
+        allJson.push(onePath);
+        head = head.next;
+      }
+      // Convert the JSON object to a JSON string
+      let allJsonStr = JSON.stringify(allJson);
 
+      // Write the string to the file
+      fs.writeFile(path, allJsonStr, function(err){
+        if(err) {
+          console.log("saveTracks error!\n");
+        }
+        console.log("Save successfully\n");
+      });
+    });
   }
 
   //

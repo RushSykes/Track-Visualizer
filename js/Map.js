@@ -99,6 +99,55 @@ function addMarker(e) {
   }
 }
 
+function addMarkerAtPos(pos) {
+  let marker = new AMap.Marker({
+    position: pos,
+    draggable: true,
+  });
+
+  // Marker events
+  marker.on('click', markerOnLeftClick);
+  marker.on('rightclick', function(e){
+    markerContextMenu.open(map, e.lnglat);
+    rightClickedMarker = this;
+    trackManager.setCurrentEditTrack(rightClickedMarker.getExtData().trackNo);
+    trackManager.setCurrentEditNodeNo(rightClickedMarker.getExtData().nodeNo);
+  });
+  marker.on('dragstart', function(e){
+    draggingMarker = this;
+    const thisMarkerTrackNo = draggingMarker.getExtData().trackNo;
+    const thisMarkerNodeNo = draggingMarker.getExtData().nodeNo;
+    trackManager.setCurrentEditTrack(thisMarkerTrackNo);
+    trackManager.setCurrentEditNodeNo(thisMarkerNodeNo);
+    console.log("drag start");
+    console.log("Current trackNo: " + thisMarkerTrackNo + "\nNode no: " + thisMarkerNodeNo);
+  });
+  marker.on('dragging', markerDragging);
+  marker.on('dragend', markerDragend);
+  // Add node to the track
+  if(trackManager.addTrackNode(new Date().getTime(), marker.getPosition().lat,  marker.getPosition().lng, trackManager.getCurrentEditTrackNo())) {
+    // Make this marker visible on this map
+    marker.setMap(map);
+    trackManager.abstractMarkModified();
+    trackManager.timelineMarkModified();
+    trackManager.updateMinTimeStamp();
+    trackManager.updateMaxTimeStamp();
+    // Set some ext data that would be useful to the track manager
+    marker.setExtData({
+      trackNo: trackManager.getCurrentEditTrackNo(),
+      nodeNo: trackManager.getCurrentEditTrackLastNodeNo()
+    });
+    // If there are more than two nodes in the current path
+    // Draw it out
+    if(trackManager.getCurrentEditTrackSize() >= 2) {
+      trackManager.drawTrack(trackManager.getCurrentEditTrackNo());
+    }
+  }
+  else {
+    console.log("addMarkerAtPos error: addTrackNode returns false\n");
+  }
+}
+
 function deleteAllTracks(e) {
   const allOverlays = map.getAllOverlays();
   const len = allOverlays.length;

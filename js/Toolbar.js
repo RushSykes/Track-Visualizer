@@ -2,6 +2,7 @@
 const {dialog, BrowserWindow} = require('electron').remote;
 const path = require('path');
 const url = require('url');
+let fs = require('fs');
 
 // Global reference of the toolbar container
 let toolContainer;
@@ -206,10 +207,54 @@ function addNewTrack() {
     trackManager.setCurrentEditTrack(marker.getExtData().trackNo);
   }
   else {
-    console.log("addMarker error: addTrackNode returns false\n");
+    console.log("addNewTrack error: addTrackNode returns false\n");
   }
 }
-// TODO: Saving and loading features
+
+function addNewTrackAtPos(pos) {
+  trackManager.addNewTrack();
+  // Add a first track node at center to remind the user
+  let marker = new AMap.Marker({
+    position: pos,
+    draggable: true,
+  });
+
+  // Marker events
+  marker.on('click', markerOnLeftClick);
+  marker.on('rightclick', function(e){
+    markerContextMenu.open(map, e.lnglat);
+    rightClickedMarker = this;
+    trackManager.setCurrentEditTrack(rightClickedMarker.getExtData().trackNo);
+    trackManager.setCurrentEditNodeNo(rightClickedMarker.getExtData().nodeNo);
+  });
+  marker.on('dragstart', function(e){
+    draggingMarker = this;
+    const thisMarkerTrackNo = draggingMarker.getExtData().trackNo;
+    const thisMarkerNodeNo = draggingMarker.getExtData().nodeNo;
+    trackManager.setCurrentEditTrack(thisMarkerTrackNo);
+    trackManager.setCurrentEditNodeNo(thisMarkerNodeNo);
+    console.log("drag start");
+    console.log("Current trackNo: " + thisMarkerTrackNo + "\nNode no: " + thisMarkerNodeNo);
+  });
+  marker.on('dragging', markerDragging);
+  marker.on('dragend', markerDragend);
+  if(trackManager.addTrackNode(new Date().getTime(), marker.getPosition().lat,  marker.getPosition().lng, trackManager.getCurrentEditTrackNo())) {
+    // Make this marker visible on this map
+    marker.setMap(map);
+    trackManager.updateMinTimeStamp();
+    trackManager.updateMaxTimeStamp();
+    // Set some ext data that would be useful to the track manager
+    marker.setExtData({
+      trackNo: trackManager.getCurrentEditTrackNo(),
+      nodeNo: trackManager.getCurrentEditTrackLastNodeNo()
+    });
+    trackManager.setCurrentEditTrack(marker.getExtData().trackNo);
+  }
+  else {
+    console.log("addNewTrackAtPos error: addTrackNode returns false\n");
+  }
+}
+
 function loadTracks() {
   const inFile = dialog.showOpenDialog({
     title: 'Load',
@@ -219,12 +264,42 @@ function loadTracks() {
     ]
   });
   if(inFile) {
-    console.log(inFile);
+    console.log(inFile[0]);
     // inFile would be the path
     // NodeJS File API from now on
+    trackManager.deleteAllTracks();
+    map.clearMap();
 
-    //trackManager.loadTracks();
-  }
+    // TODO: Create new tracks and draw them on the map
+    let allJsonStr = trackManager.loadTracks(inFile[0]);
+    if(allJsonStr) {
+      let allPaths = JSON.parse(allJsonStr);
+      let pathNum = allPaths.length;
+      console.log(pathNum);
+      for(let i = 0; i < pathNum; i++) {
+        // Add one track
+        let curTrackLen = allPaths[i].length;
+        for(let j = 0; j < curTrackLen; j++) {
+          // Add one node for curTrack
+          if(j === 0) {
+            // First node, need to set a new track
+            const firstLat = allPaths[i][0].latitude;
+            const firstLng = allPaths[i][0].longitude;
+            let firstPos = new AMap.LngLat(firstLng, firstLat);
+            console.log(firstPos);
+            addNewTrackAtPos(firstPos);
+          }
+          else {
+            // Node from no.2 on
+            const tempLat = allPaths[i][j].latitude;
+            const tempLng = allPaths[i][j].longitude;
+            let tempPos = new AMap.LngLat(tempLng, tempLat);
+            addMarkerAtPos(tempPos);
+          }
+        } // for one path
+      } // for allPaths
+    } // if loadTracks returns the Json string
+  } // if(inFile)
 }
 
 function saveTracks() {
@@ -239,6 +314,6 @@ function saveTracks() {
     console.log(outFile);
     // outFile would be the path
     // NodeJS File API from now on
-    //trackManager.saveTracks();
+    trackManager.saveTracks(outFile);
   }
 }
