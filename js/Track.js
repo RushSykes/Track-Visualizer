@@ -495,7 +495,7 @@ class TrackManager {
         }
       }
       else {
-        console.log("drawTrack error: something wrong with showinfo infoboard\n");
+        console.log("showInfo error: something wrong with showinfo infoboard\n");
       }
     }
   }
@@ -581,8 +581,11 @@ class TrackManager {
         const tempResult = this.dtw(thisArray, tempArray);
 
         // TODO: If some condition is satisfied, then tempArray is similar
-        // if(cond)
-        similarTrackNos.push(tempNo);
+        console.log(tempNo + ": " + tempResult + "\n");
+        if(tempResult <= 50000) {
+          similarTrackNos.push(tempNo);
+        }
+        
       }
       head = head.next;
     }
@@ -596,9 +599,9 @@ class TrackManager {
     let dtwArray = new Array(lenA + 1);
 
     // Reset dtw array each time in the loop
-    for(let i = 0; i < lenA; i++) {
+    for(let i = 0; i <= lenA; i++) {
       dtwArray[i] = new Array(lenB + 1);
-      for(let j = 0; j < lenB; j++) {
+      for(let j = 0; j <= lenB; j++) {
         dtwArray[i][j] = 0;
       }
     }
@@ -615,14 +618,41 @@ class TrackManager {
     // DP
     for(let i = 1; i <= lenA; i++) {
       for(let j = 1; j <= lenB; j++) {
-        let cost = trackA[i].distance(trackB[j]);
+        let cost = trackA[i-1].distance(trackB[j-1]);
         dtwArray[i][j] = cost + Math.min(dtwArray[i-1][j], dtwArray[i][j-1], dtwArray[i-1][j-1]);
       }
     }
     return dtwArray[lenA][lenB];
   }
 
-  // TODO: Animate, this will be called every second if possible
+  highlightDtwOn(trackNo) {
+    const len = trackNo.length;
+    let head = this.trackMgrHead;
+    while(head) {
+      if(head.trackNo === trackNo) {
+        let opt = head.line.getOptions();
+        opt.strokeColor = "#00FF00";
+        head.line.setOptions(opt);
+        break;
+      }
+      head = head.next;
+    }
+  }
+
+  hightlightDtwOff(trackNo) {
+    const len = trackNos.length;
+    let head = this.trackMgrHead;
+    while(head) {
+      if(head.trackNo === trackNo) {
+        let opt = head.line.getOptions();
+        opt.strokeColor = "#0080FF";
+        head.line.setOptions(opt);
+        break;
+      }
+      head = head.next;
+    }
+  }
+
   animateAll(map) {
     let head = this.trackMgrHead;
     if(this.deltaTime === -1) {
@@ -722,7 +752,6 @@ class TrackManager {
     return false;
   }
 
-  // TODO: File-realted featrues
   loadTracks(path) {
     let result = fs.readFileSync(path, "utf8");
     return result;

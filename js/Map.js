@@ -30,6 +30,7 @@ function initMap() {
   // Add marker
   mapContextMenu.addItem("Add Marker", addMarker, 0);
   mapContextMenu.addItem("Delete all tracks", deleteAllTracks, 1);
+  mapContextMenu.addItem("Reset color", resetColor, 2);
 
   // Bind map on-right-click event
   map.on('rightclick', function(e) {
@@ -290,5 +291,24 @@ function toolbarTimetagHelper() {
 }
 
 function findSimilarTracks(e) {
+  const thisTrackNo = trackManager.getCurrentEditTrackNo();
+  const similarOnes = trackManager.findSimilarTracks(thisTrackNo);
 
+  const len = similarOnes.length;
+  if(len > 0) {
+    for(let i = 0 ; i < len; i++) {
+      trackManager.highlightDtwOn(similarOnes[i]);
+    }
+  }
+}
+
+function resetColor(e) {
+  const allLines = map.getAllOverlays('polyline');
+  const len = allLines.length;
+  
+  for(let i = 0 ; i< len; i++) {
+    allLines[i].setOptions({
+      strokeColor: "#0080FF"
+    });
+  }
 }
